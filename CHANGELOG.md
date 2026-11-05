@@ -7,6 +7,8 @@ and this project follows [Semantic Versioning](https://semver.org/); see
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-05
+
 ### Added
 
 - `dremio_impersonation_mutator`: Superset `DB_CONNECTION_MUTATOR` that runs
@@ -21,4 +23,5 @@ and this project follows [Semantic Versioning](https://semver.org/); see
 - Local test environment (Docker Compose) with browser and mutator tests,
   coverage report and lint.
 
-[Unreleased]: https://github.com/dremio-professional-services/dremio-superset-impersonation/commits/main
+[Unreleased]: https://github.com/dremio-professional-services/dremio-superset-impersonation/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/dremio-professional-services/dremio-superset-impersonation/releases/tag/v0.1.0

@@ -1,8 +1,5 @@
 # Dremio impersonation for Apache Superset 0.1.0
 
-> Release notes of the next release (not released yet). They become the text
-> of the GitHub release.
-
 First release of a Superset `DB_CONNECTION_MUTATOR` that runs every Dremio
 Arrow Flight query as the logged-in Superset user. Superset connects with the
 personal access token (PAT) of a technical proxy user; for each connection the

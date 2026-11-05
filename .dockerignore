@@ -1,0 +1,5 @@
+# Keep local secrets, generated state and VCS data out of Docker build contexts.
+.git
+.claude
+local-test/.env
+local-test/.state

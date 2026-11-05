@@ -218,3 +218,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local test state (certificates, PAT files, generated secrets)
+local-test/.state/
+
+# Local Claude Code settings (may contain credentials).
+.claude/settings.local.json
+.claude/launch.json
+.claude/worktrees/
+
+# Local Codex runtime configuration and Superpowers planning notes.
+/.codex/
+/.superpowers/
+/docs/superpowers/

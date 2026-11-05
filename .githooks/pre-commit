@@ -1,0 +1,3 @@
+#!/bin/sh
+# Lint before every commit (ruff in a container, see `make lint`).
+exec make lint

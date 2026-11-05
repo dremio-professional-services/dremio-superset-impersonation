@@ -1,0 +1,48 @@
+# Package (wheel) and lint configuration. Build with `make build`, lint with
+# `make lint`.
+[build-system]
+requires = ["hatchling==1.33.0", "hatch-vcs==0.5.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dremio-superset-impersonation"
+dynamic = ["version"]
+description = "Superset DB_CONNECTION_MUTATOR that runs Dremio queries as the logged-in Superset user (inbound impersonation)."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = [
+    # The mutator relies on internals of this exact version (ARCHITECTURE.md).
+    "sqlalchemy-dremio==3.0.4",
+    "requests",
+]
+
+[project.urls]
+Repository = "https://github.com/dremio-professional-services/dremio-superset-impersonation"
+Changelog = "https://github.com/dremio-professional-services/dremio-superset-impersonation/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+source = "vcs"  # the git tag vX.Y.Z is the single source of the version
+
+[tool.hatch.version.raw-options]
+# Builds without git metadata and without a version from the Makefile get this.
+fallback_version = "0.0.0+unknown"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["dremio_impersonation.py"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["dremio_impersonation.py", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.ruff]
+target-version = "py310"  # Python of the tested Superset image
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest checks results with `assert` (it rewrites them to show both sides on
+# failure). S101 targets production code, where `python -O` strips asserts.
+"local-test/**/test_*.py" = ["S101"]
+"local-test/**/conftest.py" = ["S101"]

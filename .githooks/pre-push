@@ -1,0 +1,25 @@
+#!/bin/sh
+# Release tags (vX.Y.Z) may only be pushed for a commit that passed `make test`
+# with a clean worktree and whose version files match the tag.
+set -eu
+tested_file="local-test/.state/tested-commit"
+zero="0000000000000000000000000000000000000000"
+status=0
+while read -r local_ref local_sha _remote_ref _remote_sha; do
+  case "$local_ref" in
+    refs/tags/v*) ;;
+    *) continue ;;
+  esac
+  [ "$local_sha" = "$zero" ] && continue  # tag deletion
+  tag="${local_ref#refs/tags/}"
+  commit="$(git rev-parse "$local_sha^{commit}")"
+  if ! .githooks/check-release "${tag#v}" "$commit"; then
+    status=1
+  fi
+  if [ ! -f "$tested_file" ] || [ "$(cat "$tested_file")" != "$commit" ]; then
+    echo "pre-push: $tag points to $commit, which has no successful 'make test' run." >&2
+    echo "pre-push: create release tags with 'make release VERSION=${tag#v}'." >&2
+    status=1
+  fi
+done
+exit "$status"

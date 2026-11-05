@@ -1,0 +1,59 @@
+# Release on a pushed tag vX.Y.Z (the tag is the version): check CHANGELOG.md
+# and RELEASE.md, lint, build the wheel, test that it installs into the tested
+# Superset image with the tag's version, attest provenance, publish the GitHub
+# release. The functional tests need a local Dremio Enterprise license
+# and run before tagging (`make release`, see CONTRIBUTING.md).
+name: release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write      # create the GitHub release
+      id-token: write      # sign the provenance attestation
+      attestations: write  # store the provenance attestation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0  # `make build` reads the version from the tag
+
+      - name: Check version, CHANGELOG.md and RELEASE.md
+        run: .githooks/check-release "${GITHUB_REF_NAME#v}"
+
+      - name: Lint
+        run: make lint
+
+      - name: Build wheel and sdist
+        run: make build
+
+      - name: Install the wheel into the tested Superset image
+        run: |
+          image="$(sed -n 's/^FROM \(apache\/superset:[^ ]*\).*/\1/p' local-test/superset/Dockerfile)"
+          docker run --rm --user root -v "$PWD/dist:/dist:ro" --entrypoint sh "$image" -c '
+            uv pip install --python /app/.venv/bin/python /dist/*.whl
+            uv pip check --python /app/.venv/bin/python
+            /app/.venv/bin/python -c "import dremio_impersonation as m; print(m.__version__)"
+          ' | tee install.log
+          test "$(tail -n 1 install.log)" = "${GITHUB_REF_NAME#v}"
+
+      - name: Checksums
+        run: cd dist && sha256sum ./*.whl ./*.tar.gz > SHA256SUMS
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: dist/*.whl
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" --verify-tag
+          --title "$GITHUB_REF_NAME" --notes-file RELEASE.md
+          dist/*.whl dist/*.tar.gz dist/SHA256SUMS
